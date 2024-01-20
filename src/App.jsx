@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
+import dayjs from "dayjs";
 
 function App() {
   const [name, setName] = useState("");
   const [datetime, setDatetime] = useState("");
   const [description, setDescription] = useState("");
+  const [transactions, setTransactions] = useState("");
+  useEffect(() => {
+    getTransactions().then(setTransactions);
+  }, []);
+
+  async function getTransactions() {
+    const url = process.env.REACT_APP_API_URL + "/transactions";
+    const response = await fetch(url);
+    return await response.json();
+  }
 
   function addNewTransaction(e) {
     e.preventDefault();
@@ -40,10 +51,19 @@ function App() {
     });
   }
 
+  let balance = 0;
+  for (const transaction of transactions) {
+    balance = balance + transaction.price;
+  }
+
+  balance = balance.toFixed(2);
+  const fraction = balance.split(".")[1];
+  balance = balance.split(".")[0];
   return (
     <main>
       <h1>
-        $400 <span>.00</span>
+        ${balance}
+        <span>{fraction}</span>
       </h1>
       <form onSubmit={addNewTransaction}>
         <div className="basic">
@@ -70,36 +90,30 @@ function App() {
         <button type="submit">Add new transactions</button>
       </form>
       <div className="transactions">
-        <div className="transaction">
-          <div className="left">
-            <div className="ne">New Samsung TV</div>
-            <div className="description">it was time for new tv</div>
-          </div>
-          <div className="right">
-            <div className="price red">-$500</div>
-            <div className="datetime">12-16-2023 12:24</div>
-          </div>
-        </div>
-        <div className="transaction">
-          <div className="left">
-            <div className="ne">web client credit</div>
-            <div className="description">it was time for new tv</div>
-          </div>
-          <div className="right">
-            <div className="price green">+$200</div>
-            <div className="datetime">12-16-2023 12:24</div>
-          </div>
-        </div>
-        <div className="transaction">
-          <div className="left">
-            <div className="ne">New macbook m1 pro</div>
-            <div className="description">it was time for laptop</div>
-          </div>
-          <div className="right">
-            <div className="price red">-$500</div>
-            <div className="datetime">12-16-2023 12:24</div>
-          </div>
-        </div>
+        {transactions.length > 0 &&
+          transactions.map((transaction) => (
+            <div className="transaction">
+              <div className="left">
+                <div className="name">{transaction.name}</div>
+                <div className="description">{transaction.description}</div>
+              </div>
+              <div className="right">
+                <div
+                  className={
+                    "price " + (transaction.price < 0 ? "red" : "green")
+                  }
+                >
+                  {transaction.price}
+                </div>
+                <div className="datetime">
+                  <span>
+                    {dayjs(transaction.datetime).format("DD-MM-YYYY")}{" "}
+                    {dayjs(transaction.datetime).format("HH:mm")}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
       </div>
     </main>
   );

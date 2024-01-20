@@ -19,13 +19,13 @@ app.post("/api/transaction", async (req, res) => {
 
   // Extract data from the request body
   const { name, description, datetime, price } = req.body;
-  console.log(name);
+  console.log(typeof price);
 
   // Check if name and description are provided
   if (!name || !description || !datetime) {
     return res
       .status(400)
-      .json({ error: "Name description & datatime are required" });
+      .json({ error: "Name description & datetime are required" });
   }
 
   // Create a new transaction using the Transaction model
@@ -38,6 +38,13 @@ app.post("/api/transaction", async (req, res) => {
 
   // Respond with the created transaction as JSON
   res.json(transaction);
+});
+
+app.get("/api/transactions", async (req, res) => {
+  await mongoose.connect("mongodb://127.0.0.1:27017/moneycontrol");
+  await Transaction.find();
+  const transactions = await Transaction.find();
+  res.json(transactions);
 });
 
 app.listen(4000, () => {
